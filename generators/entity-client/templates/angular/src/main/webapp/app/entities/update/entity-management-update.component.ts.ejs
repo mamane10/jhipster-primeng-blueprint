@@ -37,7 +37,7 @@ const isValidatorsRequired = hasValidationRule || hasRequiredRelationship || ent
 _%>
 import { Component, OnInit<% if (hasMultiFieldRelationship) { %>, OnDestroy<% } %> } from '@angular/core';
 import { HttpResponse<% if (relationships.filter(r => r.ownerSide).length) { %>, HttpErrorResponse<% } %> } from '@angular/common/http';
-import { FormBuilder<%_ if (hasCompositeXToOneRelationshipQuery) { _%> , FormGroup<%_ } _%><%_ if (isValidatorsRequired) { _%>, Validators<%_ } _%> } from '@angular/forms';
+import { FormControl, FormGroup<%_ if (isValidatorsRequired) { _%>, Validators<%_ } _%> } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { Observable<% if (hasMultiFieldRelationship) { %>, Subject<% } %> } from 'rxjs';
 <% if (hasMultiFieldRelationship) { %>
@@ -117,29 +117,29 @@ export class <%= entityAngularName %>UpdateComponent implements OnInit<% if (has
     <%_ } _%>
 <%_ } _%>
 
-    editForm = this.fb.group({
+    editForm = new FormGroup({
     <%_ for (const field of fields) {
         const fieldName = field.fieldName;
         const fieldType = field.fieldType;
     const fieldTypeBlobContent = field.fieldTypeBlobContent; _%>
-        <%= fieldName %>: [<% if (field.fieldValidate === true) { %>null,[<% if (field.fieldValidateRules.includes('required')) { %>Validators.required,<% } %><% if (field.fieldValidateRules.includes('minlength')) { %>Validators.minLength(<%= field.fieldValidateRulesMinlength %>),<% } %><% if (field.fieldValidateRules.includes('maxlength')) { %>Validators.maxLength(<%= field.fieldValidateRulesMaxlength %>),<% } %><% if (field.fieldValidateRules.includes('min')) { %>Validators.min(<%= field.fieldValidateRulesMin %>),<% } %><% if (field.fieldValidateRules.includes('max')) { %>Validators.max(<%= field.fieldValidateRulesMax %>),<% } %><% if (field.fieldValidateRules.includes('pattern')) { %>Validators.pattern('<%= field.fieldValidateRulesPattern %>'),<% } %>]<% } %>],
+        <%= fieldName %>: new FormControl(<% if (field.fieldValidate === true) { %>undefined,[<% if (field.fieldValidateRules.includes('required')) { %>Validators.required,<% } %><% if (field.fieldValidateRules.includes('minlength')) { %>Validators.minLength(<%= field.fieldValidateRulesMinlength %>),<% } %><% if (field.fieldValidateRules.includes('maxlength')) { %>Validators.maxLength(<%= field.fieldValidateRulesMaxlength %>),<% } %><% if (field.fieldValidateRules.includes('min')) { %>Validators.min(<%= field.fieldValidateRulesMin %>),<% } %><% if (field.fieldValidateRules.includes('max')) { %>Validators.max(<%= field.fieldValidateRulesMax %>),<% } %><% if (field.fieldValidateRules.includes('pattern')) { %>Validators.pattern('<%= field.fieldValidateRulesPattern %>'),<% } %>]<% } %>),
         <%_ if (['byte[]', 'ByteBuffer'].includes(fieldType) && fieldTypeBlobContent !== 'text') { _%>
-        <%= fieldName %>ContentType: [],
+        <%= fieldName %>ContentType: new FormControl(),
         <%_ } _%>
     <%_ } _%>
 <%_ function generateRelationshipForm(relationship) {
         if (relationship.otherEntity.primaryKey.composite) {
-            return `${relationship.relationshipName}: this.fb.group({
-    ${relationship.otherEntity.fields.filter(f => f.id).map(f => `${f.fieldName}: ${(relationship.relationshipRequired || relationship.id) ? '[null, [Validators.required]]' : '[]'},`).join('\n')}
+            return `${relationship.relationshipName}: new FormGroup({
+    ${relationship.otherEntity.fields.filter(f => f.id).map(f => `${f.fieldName}: ${(relationship.relationshipRequired || relationship.id) ? 'new FormControl(undefined, [Validators.required])' : 'new FormControl()'},`).join('\n')}
     ${relationship.otherEntity.relationships.filter(r => r.id).map(r => generateRelationshipForm(r)).join('\n')}
     }),`;
         } else {
-          return `${relationship.relationshipName}: ${(relationship.relationshipRequired || relationship.id) ? '[null, [Validators.required]]' : '[]'},`;
+          return `${relationship.relationshipName}: ${(relationship.relationshipRequired || relationship.id) ? 'new FormControl(undefined, [Validators.required])' : 'new FormControl()'},`;
         }
 } _%>
 <%_ relationships.filter(r => r.ownerSide).forEach(r => {
     if (r.relationshipType === 'many-to-many') { _%>
-    <%= r.relationshipNamePlural %>: [],
+    <%= r.relationshipNamePlural %>: new FormControl(),
     <%_ } else { _%>
 <%- generateRelationshipForm(r) -%>
     <%_ }
@@ -169,8 +169,7 @@ export class <%= entityAngularName %>UpdateComponent implements OnInit<% if (has
         <%_ }) _%>
     <%_ } _%>
 <%_ } _%>
-        protected activatedRoute: ActivatedRoute,
-        private fb: FormBuilder
+        protected activatedRoute: ActivatedRoute
     ) {
     }
 
@@ -240,7 +239,7 @@ _%>
 <%_ if (!primaryKey.autoGenerate || primaryKey.derived) {_%>
             this.edit = true;
 <%_ } _%>
-            this.editForm.reset({ ...<%= entityInstance %> }, { emitEvent: false, onlySelf: true });
+            this.editForm.reset({ ...<%= entityInstance %> } as any, { emitEvent: false, onlySelf: true });
 <%_ for (const field of fields) {
     const fieldName = field.fieldName;
     const fieldType = field.fieldType;
@@ -280,15 +279,18 @@ _%>
 <%_ if (!primaryKey.autoGenerate || primaryKey.derived) { _%>
             this.edit = false;
         <%_ } _%>
+<%_ let hasBooleanOrDateField = false _%>
             this.editForm.reset({
 <%_ for (const field of fields) { _%>
     <%_ if (field.fieldType === 'Boolean') { _%>
+      <%_ hasBooleanOrDateField = true _%>
                 <%= field.fieldName %>: false,
     <%_ } else if ( ['Instant', 'ZonedDateTime', 'LocalDate'].includes(field.fieldType) ) { _%>
+        <%_ hasBooleanOrDateField = true _%>
                 <%= field.fieldName %>: new Date(),
         <%_ } _%>
 <%_ } _%>
-        });
+        } <%_ if (hasBooleanOrDateField === true) { _%> as any<%_ } _%>);
     }
     }
 
@@ -318,7 +320,7 @@ _%>
     save(): void {
         if (this.editForm.valid) {
             this.isSaving = true;
-            const <%= entityInstance %> = this.editForm.value;
+            const <%= entityInstance %> = this.editForm.getRawValue() as I<%= entityAngularName %>;
         <%_ if (!primaryKey.autoGenerate || primaryKey.derived) {_%>
             if (this.edit) {
         <%_ } else { _%>

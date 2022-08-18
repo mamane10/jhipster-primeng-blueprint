@@ -1,5 +1,5 @@
 <%#
- Copyright 2013-2021 the original author or authors from the JHipster project.
+ Copyright 2013-2022 the original author or authors from the JHipster project.
 
  This file is part of the JHipster project, see https://www.jhipster.tech/
  for more information.
@@ -26,14 +26,11 @@ import { UserManagementUpdateComponent } from './update/user-management-update.c
 import { userManagementRoute } from './user-management.route';
 
 @NgModule({
-    imports: [
-        SharedModule,
-        RouterModule.forChild(userManagementRoute)
-    ],
-    declarations: [
-        UserManagementComponent,
-        UserManagementDetailComponent,
-        UserManagementUpdateComponent
-    ],
+  imports: [SharedModule, RouterModule.forChild(userManagementRoute)],
+  declarations: [
+    UserManagementComponent,
+    UserManagementDetailComponent,
+    UserManagementUpdateComponent,
+  ],
 })
 export class UserManagementModule {}

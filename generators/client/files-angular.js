@@ -42,6 +42,7 @@ const files = {
                 'angular.json',
                 'ngsw-config.json',
                 'webpack/proxy.conf.js',
+                'webpack/environment.js',
                 'webpack/webpack.custom.js',
                 '.browserslistrc',
                 { file: 'webpack/logo-jhipster.png', method: 'copy' }

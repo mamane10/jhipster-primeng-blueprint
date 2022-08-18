@@ -8,7 +8,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ *    https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,6 +17,8 @@
  * limitations under the License.
  */
 const utils = require('generator-jhipster/generators/utils');
+const {startCase} = require('lodash');
+const {entityClientI18nFiles} = require('generator-jhipster/generators/entity-i18n/files');
 
 /**
  * The default is to use a file path string. It implies use of the template method.
@@ -24,41 +26,25 @@ const utils = require('generator-jhipster/generators/utils');
  */
 
 module.exports = {
-    writeFiles
+  writeFiles
 };
 
 function writeFiles() {
-    return {
-        writeEnumFiles() {
-            this.fields.forEach(field => {
-                if (field.fieldIsEnum === true) {
-                  const enumInfo = {
-                    ...utils.getEnumInfo(field, this.clientRootFolder),
-                    frontendAppName: this.frontendAppName,
-                    packageName: this.packageName,
-                  };
+  return {
+  async writeClientFiles() {
+      if (this.skipClient) return;
 
-                    // Copy for each
-                    if (!this.skipClient && this.enableTranslation) {
-                        const languages = this.languages || this.getAllInstalledLanguages();
-                        languages.forEach(language => {
-                            this.copyEnumI18n(language, enumInfo, './');
-                        });
-                    }
-                }
-            });
-        },
-
-        writeClientFiles() {
-            if (this.skipClient) return;
-
-            // Copy for each
-            if (this.enableTranslation) {
-                const languages = this.languages || this.getAllInstalledLanguages();
-                languages.forEach(language => {
-                    this.copyI18n(language, './');
-                });
-            }
-        }
-    };
+      // Copy for each
+      if (this.enableTranslation) {
+        // Copied as is from generator-jhipster
+        const { clientSrcDir, frontendAppName, languages = this.languages || this.getAllInstalledLanguages() } = this;
+        await Promise.all(
+        languages.map(async lang => {
+          await this.writeFiles({ sections: entityClientI18nFiles, context: { ...this.entity, clientSrcDir, frontendAppName, lang } });
+          this.addEntityTranslationKey(this.entityTranslationKeyMenu, this.entityClassHumanized || startCase(this.entityClass), lang);
+        })
+        );
+      }
+    }
+  };
 }

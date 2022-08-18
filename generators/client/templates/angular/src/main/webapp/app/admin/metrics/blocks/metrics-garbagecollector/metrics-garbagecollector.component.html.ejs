@@ -95,14 +95,14 @@
       <tbody>
         <tr>
           <td>jvm.gc.pause</td>
-          <td class="text-right">{{ garbageCollectorMetrics['jvm.gc.pause'].count }}</td>
-          <td class="text-right">{{ garbageCollectorMetrics['jvm.gc.pause'].mean | number: '1.0-3' }}</td>
-          <td class="text-right">{{ garbageCollectorMetrics['jvm.gc.pause']['0.0'] | number: '1.0-3' }}</td>
-          <td class="text-right">{{ garbageCollectorMetrics['jvm.gc.pause']['0.5'] | number: '1.0-3' }}</td>
-          <td class="text-right">{{ garbageCollectorMetrics['jvm.gc.pause']['0.75'] | number: '1.0-3' }}</td>
-          <td class="text-right">{{ garbageCollectorMetrics['jvm.gc.pause']['0.95'] | number: '1.0-3' }}</td>
-          <td class="text-right">{{ garbageCollectorMetrics['jvm.gc.pause']['0.99'] | number: '1.0-3' }}</td>
-          <td class="text-right">{{ garbageCollectorMetrics['jvm.gc.pause'].max | number: '1.0-3' }}</td>
+          <td class="text-right">{{ garbageCollectorMetrics!['jvm.gc.pause'].count }}</td>
+          <td class="text-right">{{ garbageCollectorMetrics!['jvm.gc.pause'].mean | number: '1.0-3' }}</td>
+          <td class="text-right">{{ garbageCollectorMetrics!['jvm.gc.pause']['0.0'] | number: '1.0-3' }}</td>
+          <td class="text-right">{{ garbageCollectorMetrics!['jvm.gc.pause']['0.5'] | number: '1.0-3' }}</td>
+          <td class="text-right">{{ garbageCollectorMetrics!['jvm.gc.pause']['0.75'] | number: '1.0-3' }}</td>
+          <td class="text-right">{{ garbageCollectorMetrics!['jvm.gc.pause']['0.95'] | number: '1.0-3' }}</td>
+          <td class="text-right">{{ garbageCollectorMetrics!['jvm.gc.pause']['0.99'] | number: '1.0-3' }}</td>
+          <td class="text-right">{{ garbageCollectorMetrics!['jvm.gc.pause'].max | number: '1.0-3' }}</td>
         </tr>
       </tbody>
     </table>
